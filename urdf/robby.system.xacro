@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="test_robot">
+    <xacro:arg name="use_mock_hardware" default="false" />
+    <xacro:include filename="$(find robby_description)/urdf/robby.robot.xacro"/>
+    <xacro:include filename="$(find robby_description)/urdf/robby.ros2_control.xacro"/>
+    <link name="world" />
+
+    <xacro:robby
+        name="robby"
+        prefix=""
+        parent="world"
+        >
+            <origin xyz="0 0 0.014" rpy="0 0 -1.57" />
+    </xacro:robby>
+
+    <xacro:robby_control
+        name="robby" 
+        prefix="" 
+        use_mock_hardware="$(arg use_mock_hardware)"
+        bus_config="$(find robby_description)/config/robby/bus.yml"
+        master_config="$(find robby_description)/config/robby/master.dcf"
+        can_interface_name="vcan0"
+        master_bin=""
+        />
+
+</robot>

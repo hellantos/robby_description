@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="robby" params="
+        name
+        prefix
+        parent
+        *origin
+        " >
+
+
+    <link name="${prefix}base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://robby_description/meshes/base.dae" />
+            </geometry>
+        </visual>
+    </link>
+
+    <link name="${prefix}left_wheel_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://robby_description/meshes/wheel.dae" />
+            </geometry>
+        </visual>
+    </link>
+
+    <link name="${prefix}right_wheel_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 3.14 0"/>
+            <geometry>
+                <mesh filename="package://robby_description/meshes/wheel.dae" />
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="${prefix}base_joint" type="fixed">
+        <xacro:insert_block name="origin" />
+        <parent link="${parent}"/>
+        <child link="${prefix}base_link"/>
+    </joint>
+
+    <joint name="${prefix}left_wheel_joint" type="continuous">
+        <parent link="${prefix}base_link"/>
+        <child link="${prefix}left_wheel_link"/>
+        <origin xyz="-0.05 0.08 0.021" rpy="1.57 0 0"/>
+        <axis xyz="0 0 -1" />
+    </joint>
+
+    <joint name="${prefix}right_wheel_joint" type="continuous">
+        <parent link="${prefix}base_link"/>
+        <child link="${prefix}right_wheel_link"/>
+        <origin xyz="-0.05 -0.080 0.021" rpy="-1.57 0 0"/>
+        <axis xyz="0 0 1" />
+    </joint>
+
+    </xacro:macro>
+</robot>
