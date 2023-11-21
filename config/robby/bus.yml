@@ -17,10 +17,10 @@ defaults:
   velocity_mode: 3
   heartbeat_producer: 1000 # Heartbeat every 1000 ms
   sdo: # SDO executed during config
-    - {index: 0x6081, sub_index: 0, value: 500000} # Set velocity
-    - {index: 0x6083, sub_index: 0, value: 1000000} # Set acceleration
-    - {index: 0x6083, sub_index: 0, value: 1000000} # Set deceleration
-    - {index: 0x6085, sub_index: 0, value: 1000000} # Set quickstop deceleration
+    - {index: 0x6081, sub_index: 0, value: 160} # Set velocity
+    - {index: 0x6083, sub_index: 0, value: 16000} # Set acceleration
+    - {index: 0x6083, sub_index: 0, value: 16000} # Set deceleration
+    - {index: 0x6085, sub_index: 0, value: 16000} # Set quickstop deceleration
     - {index: 0x6098, sub_index: 0, value: 35} # Set default homing mode to 35
     - {index: 0x60C2, sub_index: 1, value: 50} # Set interpolation time for cyclic modes to 50 ms
     - {index: 0x60C2, sub_index: 2, value: -3} # Set base 10-3s
@@ -59,5 +59,13 @@ defaults:
 nodes:
   left_drive:
     node_id: 2
+    scale_pos_from_dev: 0.003926991
+    scale_pos_to_dev: 254.647897079
+    scale_vel_from_dev: 0.003926991
+    scale_vel_to_dev: 254.647897079
   right_drive:
     node_id: 3
+    scale_pos_from_dev: -0.003926991
+    scale_pos_to_dev: -254.647897079
+    scale_vel_from_dev: -0.003926991
+    scale_vel_to_dev: -254.647897079
