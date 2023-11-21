@@ -20,16 +20,24 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
+from launch.conditions import UnlessCondition
 
 
 def generate_launch_description():
-    arg_use_mock_hardware = DeclareLaunchArgument(
-            "use_mock_hardware",
-            default_value="true",
+    arg_use_real_hardware = DeclareLaunchArgument(
+            "use_real_hardware",
+            default_value="false",
             description="Start robot with mock hardware mirroring command to its states.",
     )
 
-    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    arg_can_interface_name = DeclareLaunchArgument(
+            "can_interface_name",
+            default_value="vcan0",
+            description="Start robot with mock hardware mirroring command to its states.",
+    )
+
+    can_interface_name = LaunchConfiguration("can_interface_name")
+    use_real_hardware = LaunchConfiguration("use_real_hardware")
 
     robot_description_content = Command(
         [
@@ -43,7 +51,8 @@ def generate_launch_description():
                 ]
             ),
             " ",
-            "use_mock_hardware:=", use_mock_hardware,
+            "use_mock_hardware:=", "false", " ",
+            "can_interface_name:=", can_interface_name
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -67,7 +76,7 @@ def generate_launch_description():
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robby_base_controller", "--controller-manager", "/controller_manager"],
+        arguments=["robby_forward_controller", "--controller-manager", "/controller_manager"],
     )
 
     robot_state_publisher_node = Node(
@@ -99,6 +108,7 @@ def generate_launch_description():
             "node_name": "fake_left_drive",
             "slave_config": slave_config,
         }.items(),
+        condition=UnlessCondition(use_real_hardware)
     )
 
     slave_node_2 = IncludeLaunchDescription(
@@ -108,6 +118,7 @@ def generate_launch_description():
             "node_name": "fake_right_drive",
             "slave_config": slave_config,
         }.items(),
+        condition=UnlessCondition(use_real_hardware)
     )
 
     delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -140,7 +151,8 @@ def generate_launch_description():
     )
 
     nodes_to_start = [
-        arg_use_mock_hardware,
+        arg_can_interface_name,
+        arg_use_real_hardware,
         robot_state_publisher_node,
         delay_master_launch,
         delay_slave_launch
