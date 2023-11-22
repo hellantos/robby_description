@@ -13,15 +13,31 @@
 #    limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, TimerAction
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.event_handlers import OnProcessExit
+from launch.conditions import UnlessCondition
 
 
 def generate_launch_description():
+    arg_use_real_hardware = DeclareLaunchArgument(
+            "use_real_hardware",
+            default_value="false",
+            description="Start robot with mock hardware mirroring command to its states.",
+    )
+
+    arg_can_interface_name = DeclareLaunchArgument(
+            "can_interface_name",
+            default_value="vcan0",
+            description="Start robot with mock hardware mirroring command to its states.",
+    )
+
+    can_interface_name = LaunchConfiguration("can_interface_name")
+    use_real_hardware = LaunchConfiguration("use_real_hardware")
 
     robot_description_content = Command(
         [
@@ -29,20 +45,19 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("canopen_tests"),
-                    "urdf/robot_controller",
-                    "robot_controller.urdf.xacro",
+                    FindPackageShare("robby_description"),
+                    "urdf",
+                    "robby.system.xacro",
                 ]
             ),
+            " ",
+            "use_mock_hardware:=", "false", " ",
+            "can_interface_name:=", can_interface_name
         ]
     )
     robot_description = {"robot_description": robot_description_content}
     robot_control_config = PathJoinSubstitution(
-        [FindPackageShare("canopen_tests"), "config/robot_control", "ros2_controllers.yaml"]
-    )
-
-    rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("canopen_tests"), "rviz", "robot_controller.rviz"]
+        [FindPackageShare("robby_description"), "config/robby", "ros2_controllers.yaml"]
     )
 
     control_node = Node(
@@ -61,13 +76,7 @@ def generate_launch_description():
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robot_controller", "--controller-manager", "/controller_manager"],
-    )
-
-    forward_position_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["forward_position_controller", "--controller-manager", "/controller_manager"],
+        arguments=["robby_base_controller", "--controller-manager", "/controller_manager"],
     )
 
     robot_state_publisher_node = Node(
@@ -76,50 +85,77 @@ def generate_launch_description():
         output="both",
         parameters=[robot_description],
     )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
-        output="log",
-        arguments=["-d", rviz_config_file],
+        output="log"
     )
 
     slave_config = PathJoinSubstitution(
-        [FindPackageShare("canopen_tests"), "config/robot_control", "cia402_slave.eds"]
+        [FindPackageShare("robby_description"), "config/robby", "TMCM-1270.eds"]
     )
 
     slave_launch = PathJoinSubstitution(
         [FindPackageShare("canopen_fake_slaves"), "launch", "cia402_slave.launch.py"]
     )
+
     slave_node_1 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(slave_launch),
         launch_arguments={
             "node_id": "2",
-            "node_name": "slave_node_1",
+            "node_name": "fake_left_drive",
             "slave_config": slave_config,
         }.items(),
+        condition=UnlessCondition(use_real_hardware)
     )
 
     slave_node_2 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(slave_launch),
         launch_arguments={
             "node_id": "3",
-            "node_name": "slave_node_2",
+            "node_name": "fake_right_drive",
             "slave_config": slave_config,
         }.items(),
+        condition=UnlessCondition(use_real_hardware)
+    )
+
+    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[robot_controller_spawner],
+        )
+    )
+
+    delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[rviz_node],
+        )
+    )
+
+    delay_master_launch = TimerAction(
+        period=1.0,
+        actions=[
+            control_node, 
+            joint_state_broadcaster_spawner, 
+            delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+            delay_rviz_after_joint_state_broadcaster_spawner]
+    )
+
+    delay_slave_launch = TimerAction(
+        period=2.0,
+        actions=[
+            slave_node_1,slave_node_2]
     )
 
     nodes_to_start = [
-        # slave_node_2,
-        # slave_node_1,
-        control_node,
-        joint_state_broadcaster_spawner,
-        # robot_controller_spawner,
-        forward_position_controller_spawner,
+        arg_can_interface_name,
+        arg_use_real_hardware,
         robot_state_publisher_node,
-        slave_node_1,
-        slave_node_2,
-        # rviz_node
+        delay_master_launch,
+        delay_slave_launch
     ]
 
     return LaunchDescription(nodes_to_start)

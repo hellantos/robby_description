@@ -16,7 +16,7 @@ robby_forward_controller:
     joints:
       - left_wheel_joint
       - right_wheel_joint
-    interface_name: position
+    interface_name: velocity
 
 robby_base_controller:
   ros__parameters:
