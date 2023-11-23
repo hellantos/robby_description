@@ -11,7 +11,13 @@
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-
+  <depend>diff_drive_controller</depend>
+  <depend>forward_command_controller</depend>
+  <depend>joint_state_broadcaster</depend>
+  <depend>controller_manager</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>rviz2</depend>
+  <depend>teleop_twist_keyboard</depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>

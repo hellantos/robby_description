@@ -18,7 +18,7 @@ defaults:
   heartbeat_producer: 1000 # Heartbeat every 1000 ms
   sdo: # SDO executed during config
     - {index: 0x2000, sub_index: 0, value: 3}       # Microstep resolution (8 per step)
-    - {index: 0x6081, sub_index: 0, value: 6400}    # Set velocity
+    - {index: 0x6081, sub_index: 0, value: 1600}    # Set velocity
     - {index: 0x6083, sub_index: 0, value: 16000}   # Set acceleration
     - {index: 0x6083, sub_index: 0, value: 16000}   # Set deceleration
     - {index: 0x6085, sub_index: 0, value: 16000}   # Set quickstop deceleration
@@ -54,14 +54,14 @@ defaults:
       - {index: 0x60FF, sub_index: 0} # target velocity
 nodes:
   left_drive:
-    node_id: 2
-    scale_pos_from_dev: 0.003926991
-    scale_pos_to_dev: 254.647897079
-    scale_vel_from_dev: 0.003926991
-    scale_vel_to_dev: 254.647897079
-  right_drive:
     node_id: 3
     scale_pos_from_dev: -0.003926991
     scale_pos_to_dev: -254.647897079
     scale_vel_from_dev: -0.003926991
     scale_vel_to_dev: -254.647897079
+  right_drive:
+    node_id: 2
+    scale_pos_from_dev: 0.003926991
+    scale_pos_to_dev: 254.647897079
+    scale_vel_from_dev: 0.003926991
+    scale_vel_to_dev: 254.647897079

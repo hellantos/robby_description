@@ -120,16 +120,6 @@ def generate_launch_description():
         )
     )
 
-    keyboard_teleop = Node(
-        package="teleop_twist_keyboard",
-        executable= "teleop_twist_keyboard",
-        name="teleop",
-        remappings=[
-            ("/cmd_vel", "/diff_drive_controller/cmd_vel_unstamped"),
-        ],
-
-    )
-
     nodes = [
         control_node,
         robot_state_pub_node,
