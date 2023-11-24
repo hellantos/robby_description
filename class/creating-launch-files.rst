@@ -399,3 +399,33 @@ In rviz you can now see the wheels moving.
 Launch differential drive controller
 ====================================
 
+In order to run the robot with a differential drive controller, you can create a launch file
+called diff_drive.launch.py in the launch directory. Copy the contents of the forward_command.launch.py
+into this new file and then change the following lines:
+
+.. code-block:: python
+    :emphasize-lines: 4
+
+    robot_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robby_forward_controller", "--controller-manager", "/controller_manager"],
+    )
+
+Cange ``robby_forward_controller`` to ``robby_base_controller``. Now you can
+build your workspace and then your are all setup to control the robot with
+a differential drive controller.
+
+.. code:: bash
+
+    ros2 launch my_robot_description diff_drive.launch.py
+
+In another terminal with rolling sourced you can use the ``teleop_twist_keyboard`` node to
+control the robot. To do this open another terminal and source rolling.
+
+.. code:: bash
+
+    source /opt/ros/rolling/setup.bash
+    ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/robby_base_controller/cmd_vel_unstamped
+
+This is it, you can now run the robot with a differential drive controller.
