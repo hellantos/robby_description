@@ -397,7 +397,7 @@ In rviz you can now see the wheels moving.
 
 
 Launch differential drive controller
-====================================
+------------------------------------
 
 In order to run the robot with a differential drive controller, you can create a launch file
 called diff_drive.launch.py in the launch directory. Copy the contents of the forward_command.launch.py

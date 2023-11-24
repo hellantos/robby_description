@@ -1,4 +1,4 @@
-ROS 2 Configuration Package
+ROS 2 configuration package
 ===========================
 
 In order to use the ROS 2 CANopen stack, a configuration package is required.
