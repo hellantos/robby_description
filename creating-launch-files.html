@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROS 2 launch files &mdash; Building Robby  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ROS 2 control configuration" href="creating-control-configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Building Robby
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="prerequisites.html">Preparing the system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-package.html">ROS 2 configuration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-xacro.html">ROS 2 robot description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-bus-configuration.html">ROS 2 CANopen bus configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-control-configuration.html">ROS 2 control configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ROS 2 launch files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#launch-control-simulation">Launch control simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#launch-forward-controller">Launch forward controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#launch-differential-drive-controller">Launch differential drive controller</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Building Robby</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ROS 2 launch files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/creating-launch-files.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ros-2-launch-files">
+<h1>ROS 2 launch files<a class="headerlink" href="#ros-2-launch-files" title="Link to this heading"></a></h1>
+<p>We will create three launch files.</p>
+<ul class="simple">
+<li><p>control simulation</p></li>
+<li><p>forward controller (fake &amp; real)</p></li>
+<li><p>diff drive controller (fake &amp; real)</p></li>
+</ul>
+<p>To do this, we need to create a launch directory in our package.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>launch
+</pre></div>
+</div>
+<p>We also need to tell CMakeLists.txt to install the launch files. Therefore,
+add the launch directory in the install directive.</p>
+<section id="launch-control-simulation">
+<h2>Launch control simulation<a class="headerlink" href="#launch-control-simulation" title="Link to this heading"></a></h2>
+<p>In this section we will create a launch file that will start
+a very simple simulation of the system on hardware interface level.</p>
+<p>The launch file will start the following nodes:</p>
+<ul class="simple">
+<li><p>controller_manager</p></li>
+<li><p>rviz</p></li>
+<li><p>joint_state_broadcaster</p></li>
+<li><p>robot_state_publisher</p></li>
+<li><p>robby_base_controller (diff_drive_controller)</p></li>
+</ul>
+<p>The launch file will use the mock_components/GenericSystem plugin. This means
+that the robot system is only simulated on hardware interface level.</p>
+<p>The following launch file will do the trick, paste the contents into a file
+called control_simulation.launch.py in the launch directory.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">launch</span> <span class="kn">import</span> <span class="n">LaunchDescription</span>
+<span class="kn">from</span> <span class="nn">launch.actions</span> <span class="kn">import</span> <span class="n">DeclareLaunchArgument</span><span class="p">,</span> <span class="n">RegisterEventHandler</span>
+<span class="kn">from</span> <span class="nn">launch.conditions</span> <span class="kn">import</span> <span class="n">IfCondition</span>
+<span class="kn">from</span> <span class="nn">launch.event_handlers</span> <span class="kn">import</span> <span class="n">OnProcessExit</span>
+<span class="kn">from</span> <span class="nn">launch.substitutions</span> <span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">FindExecutable</span><span class="p">,</span> <span class="n">PathJoinSubstitution</span><span class="p">,</span> <span class="n">LaunchConfiguration</span>
+
+<span class="kn">from</span> <span class="nn">launch_ros.actions</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">launch_ros.substitutions</span> <span class="kn">import</span> <span class="n">FindPackageShare</span>
+
+
+<span class="k">def</span> <span class="nf">generate_launch_description</span><span class="p">():</span>
+    <span class="c1"># Declare arguments</span>
+    <span class="n">declared_arguments</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Initialize Arguments</span>
+    <span class="n">gui</span> <span class="o">=</span> <span class="n">true</span>
+    <span class="n">use_mock_hardware</span> <span class="o">=</span> <span class="n">true</span>
+
+    <span class="c1"># Load xacro file</span>
+    <span class="n">robot_description_content</span> <span class="o">=</span> <span class="n">Command</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">PathJoinSubstitution</span><span class="p">([</span><span class="n">FindExecutable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;xacro&quot;</span><span class="p">)]),</span>
+            <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="n">PathJoinSubstitution</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">FindPackageShare</span><span class="p">(</span><span class="s2">&quot;my_robot_description&quot;</span><span class="p">),</span> <span class="s2">&quot;urdf&quot;</span><span class="p">,</span> <span class="s2">&quot;robby.system.xacro&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;use_mock_hardware:=&quot;</span><span class="p">,</span>
+            <span class="n">use_mock_hardware</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">robot_description</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;my_robot_description&quot;</span><span class="p">:</span> <span class="n">robot_description_content</span><span class="p">}</span>
+
+    <span class="c1"># Load controllers configuration</span>
+    <span class="n">robot_controllers</span> <span class="o">=</span> <span class="n">PathJoinSubstitution</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">FindPackageShare</span><span class="p">(</span><span class="s2">&quot;my_robot_description&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;config/robby&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ros2_controllers.yaml&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Launch controller_manager</span>
+    <span class="n">control_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;ros2_control_node&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">[</span><span class="n">robot_description</span><span class="p">,</span> <span class="n">robot_controllers</span><span class="p">],</span>
+        <span class="n">output</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Launch robot_state_publisher</span>
+    <span class="n">robot_state_pub_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;robot_state_publisher&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;robot_state_publisher&quot;</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">[</span><span class="n">robot_description</span><span class="p">],</span>
+        <span class="n">remappings</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;/diff_drive_controller/cmd_vel_unstamped&quot;</span><span class="p">,</span> <span class="s2">&quot;/cmd_vel&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Launch rviz</span>
+    <span class="n">rviz_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;rviz2&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;rviz2&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;rviz2&quot;</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span>
+        <span class="n">condition</span><span class="o">=</span><span class="n">IfCondition</span><span class="p">(</span><span class="n">gui</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Spawn joint state broadcaster controller</span>
+    <span class="n">joint_state_broadcaster_spawner</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;spawner&quot;</span><span class="p">,</span>
+        <span class="n">arguments</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;joint_state_broadcaster&quot;</span><span class="p">,</span> <span class="s2">&quot;--controller-manager&quot;</span><span class="p">,</span> <span class="s2">&quot;/controller_manager&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Spawn diff drive controller</span>
+    <span class="n">robot_controller_spawner</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;spawner&quot;</span><span class="p">,</span>
+        <span class="n">arguments</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;robby_base_controller&quot;</span><span class="p">,</span> <span class="s2">&quot;--controller-manager&quot;</span><span class="p">,</span> <span class="s2">&quot;/controller_manager&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Delay rviz start after `joint_state_broadcaster`</span>
+    <span class="n">delay_rviz_after_joint_state_broadcaster_spawner</span> <span class="o">=</span> <span class="n">RegisterEventHandler</span><span class="p">(</span>
+        <span class="n">event_handler</span><span class="o">=</span><span class="n">OnProcessExit</span><span class="p">(</span>
+            <span class="n">target_action</span><span class="o">=</span><span class="n">joint_state_broadcaster_spawner</span><span class="p">,</span>
+            <span class="n">on_exit</span><span class="o">=</span><span class="p">[</span><span class="n">rviz_node</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Delay start of robot_controller after `joint_state_broadcaster`</span>
+    <span class="n">delay_robot_controller_spawner_after_joint_state_broadcaster_spawner</span> <span class="o">=</span> <span class="n">RegisterEventHandler</span><span class="p">(</span>
+        <span class="n">event_handler</span><span class="o">=</span><span class="n">OnProcessExit</span><span class="p">(</span>
+            <span class="n">target_action</span><span class="o">=</span><span class="n">joint_state_broadcaster_spawner</span><span class="p">,</span>
+            <span class="n">on_exit</span><span class="o">=</span><span class="p">[</span><span class="n">robot_controller_spawner</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">control_node</span><span class="p">,</span>
+        <span class="n">robot_state_pub_node</span><span class="p">,</span>
+        <span class="n">joint_state_broadcaster_spawner</span><span class="p">,</span>
+        <span class="n">delay_rviz_after_joint_state_broadcaster_spawner</span><span class="p">,</span>
+        <span class="n">delay_robot_controller_spawner_after_joint_state_broadcaster_spawner</span><span class="p">,</span>
+        <span class="n">keyboard_teleop</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">LaunchDescription</span><span class="p">(</span><span class="n">declared_arguments</span> <span class="o">+</span> <span class="n">nodes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can now build your package and launch the simulation.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>my_robot_description
+ros2<span class="w"> </span>launch<span class="w"> </span>my_robot_description<span class="w"> </span>control_simulation.launch.py
+</pre></div>
+</div>
+<p>Open another terminal and source your workspace and ros2 installation.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>/opt/ros/rolling/setup.bash
+<span class="nb">source</span><span class="w"> </span>~/ros2_ws/install/setup.bash
+</pre></div>
+</div>
+<p>Now you can control the robot with the keyboard, if you run the following
+command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>run<span class="w"> </span>teleop_twist_keyboard<span class="w"> </span>teleop_twist_keyboard
+</pre></div>
+</div>
+<p>You should see the robot moving in rviz. This simulation is however very
+basic and does not include CANopen communication and does not help
+with validating the system.</p>
+</section>
+<section id="launch-forward-controller">
+<h2>Launch forward controller<a class="headerlink" href="#launch-forward-controller" title="Link to this heading"></a></h2>
+<p>In this section we will create a launch file that will start a forward
+command controller. This controller will be able to control the robot
+by writing velocity to a topic. The launch file will be able to either
+run with fake CANopen slaves or with real CANopen slaves.</p>
+<p>The launch file will start the following nodes:</p>
+<ul class="simple">
+<li><p>controller_manager</p>
+<ul>
+<li><p>joint_state_broadcaster</p></li>
+<li><p>robby_forward_controller</p></li>
+</ul>
+</li>
+<li><p>device_container</p>
+<ul>
+<li><p>master</p></li>
+<li><p>left_drive</p></li>
+<li><p>right_drive</p></li>
+</ul>
+</li>
+<li><p>fake_left_drive</p></li>
+<li><p>fake_right_drive</p></li>
+<li><p>robot_state_publisher</p></li>
+<li><p>rviz2</p></li>
+</ul>
+<p>This system can be launch with the following launch file. Paste the
+following code into a file called forward_controller.launch.py in the
+launch directory.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">launch</span> <span class="kn">import</span> <span class="n">LaunchDescription</span>
+<span class="kn">from</span> <span class="nn">launch.actions</span> <span class="kn">import</span> <span class="n">DeclareLaunchArgument</span><span class="p">,</span> <span class="n">RegisterEventHandler</span><span class="p">,</span> <span class="n">TimerAction</span>
+<span class="kn">from</span> <span class="nn">launch.substitutions</span> <span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">FindExecutable</span><span class="p">,</span> <span class="n">LaunchConfiguration</span><span class="p">,</span> <span class="n">PathJoinSubstitution</span>
+<span class="kn">from</span> <span class="nn">launch_ros.actions</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">launch_ros.substitutions</span> <span class="kn">import</span> <span class="n">FindPackageShare</span>
+<span class="kn">from</span> <span class="nn">launch.actions</span> <span class="kn">import</span> <span class="n">IncludeLaunchDescription</span>
+<span class="kn">from</span> <span class="nn">launch.launch_description_sources</span> <span class="kn">import</span> <span class="n">PythonLaunchDescriptionSource</span>
+<span class="kn">from</span> <span class="nn">launch.event_handlers</span> <span class="kn">import</span> <span class="n">OnProcessExit</span>
+<span class="kn">from</span> <span class="nn">launch.conditions</span> <span class="kn">import</span> <span class="n">UnlessCondition</span>
+
+
+<span class="k">def</span> <span class="nf">generate_launch_description</span><span class="p">():</span>
+
+    <span class="c1"># Declare arguments</span>
+    <span class="n">arg_use_real_hardware</span> <span class="o">=</span> <span class="n">DeclareLaunchArgument</span><span class="p">(</span>
+            <span class="s2">&quot;use_real_hardware&quot;</span><span class="p">,</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Start robot with real hardware.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">arg_can_interface_name</span> <span class="o">=</span> <span class="n">DeclareLaunchArgument</span><span class="p">(</span>
+            <span class="s2">&quot;can_interface_name&quot;</span><span class="p">,</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;vcan0&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Use this can interface for communication.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">can_interface_name</span> <span class="o">=</span> <span class="n">LaunchConfiguration</span><span class="p">(</span><span class="s2">&quot;can_interface_name&quot;</span><span class="p">)</span>
+    <span class="n">use_real_hardware</span> <span class="o">=</span> <span class="n">LaunchConfiguration</span><span class="p">(</span><span class="s2">&quot;use_real_hardware&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load xacro file</span>
+    <span class="n">robot_description_content</span> <span class="o">=</span> <span class="n">Command</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">PathJoinSubstitution</span><span class="p">([</span><span class="n">FindExecutable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;xacro&quot;</span><span class="p">)]),</span>
+            <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="n">PathJoinSubstitution</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">FindPackageShare</span><span class="p">(</span><span class="s2">&quot;robby_description&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;urdf&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;robby.system.xacro&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+            <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;use_mock_hardware:=&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+            <span class="s2">&quot;can_interface_name:=&quot;</span><span class="p">,</span> <span class="n">can_interface_name</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">robot_description</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;robot_description&quot;</span><span class="p">:</span> <span class="n">robot_description_content</span><span class="p">}</span>
+
+    <span class="c1"># Load controllers configuration</span>
+    <span class="n">robot_control_config</span> <span class="o">=</span> <span class="n">PathJoinSubstitution</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">FindPackageShare</span><span class="p">(</span><span class="s2">&quot;robby_description&quot;</span><span class="p">),</span> <span class="s2">&quot;config/robby&quot;</span><span class="p">,</span> <span class="s2">&quot;ros2_controllers.yaml&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Launch controller_manager</span>
+    <span class="n">control_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;ros2_control_node&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">[</span><span class="n">robot_description</span><span class="p">,</span> <span class="n">robot_control_config</span><span class="p">],</span>
+        <span class="n">output</span><span class="o">=</span><span class="s2">&quot;screen&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Spawn joint state broadcaster controller</span>
+    <span class="n">joint_state_broadcaster_spawner</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;spawner&quot;</span><span class="p">,</span>
+        <span class="n">arguments</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;joint_state_broadcaster&quot;</span><span class="p">,</span> <span class="s2">&quot;--controller-manager&quot;</span><span class="p">,</span> <span class="s2">&quot;/controller_manager&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="c1"># Spawn forward controller</span>
+    <span class="n">robot_controller_spawner</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;spawner&quot;</span><span class="p">,</span>
+        <span class="n">arguments</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;robby_forward_controller&quot;</span><span class="p">,</span> <span class="s2">&quot;--controller-manager&quot;</span><span class="p">,</span> <span class="s2">&quot;/controller_manager&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="c1"># Launch robot_state_publisher</span>
+    <span class="n">robot_state_publisher_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;robot_state_publisher&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;robot_state_publisher&quot;</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">[</span><span class="n">robot_description</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="c1"># Launch rviz</span>
+    <span class="n">rviz_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">package</span><span class="o">=</span><span class="s2">&quot;rviz2&quot;</span><span class="p">,</span>
+        <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;rviz2&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;rviz2&quot;</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">=</span><span class="s2">&quot;log&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Load CANopen slave configuration file</span>
+    <span class="n">slave_config</span> <span class="o">=</span> <span class="n">PathJoinSubstitution</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">FindPackageShare</span><span class="p">(</span><span class="s2">&quot;robby_description&quot;</span><span class="p">),</span> <span class="s2">&quot;config/robby&quot;</span><span class="p">,</span> <span class="s2">&quot;TMCM-1270.eds&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Find CANopen fake slave launch file</span>
+    <span class="n">slave_launch</span> <span class="o">=</span> <span class="n">PathJoinSubstitution</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">FindPackageShare</span><span class="p">(</span><span class="s2">&quot;canopen_fake_slaves&quot;</span><span class="p">),</span> <span class="s2">&quot;launch&quot;</span><span class="p">,</span> <span class="s2">&quot;cia402_slave.launch.py&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Launch fake slaves for the drives</span>
+    <span class="n">slave_node_1</span> <span class="o">=</span> <span class="n">IncludeLaunchDescription</span><span class="p">(</span>
+        <span class="n">PythonLaunchDescriptionSource</span><span class="p">(</span><span class="n">slave_launch</span><span class="p">),</span>
+        <span class="n">launch_arguments</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;node_id&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;node_name&quot;</span><span class="p">:</span> <span class="s2">&quot;fake_left_drive&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;slave_config&quot;</span><span class="p">:</span> <span class="n">slave_config</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+        <span class="n">condition</span><span class="o">=</span><span class="n">UnlessCondition</span><span class="p">(</span><span class="n">use_real_hardware</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">slave_node_2</span> <span class="o">=</span> <span class="n">IncludeLaunchDescription</span><span class="p">(</span>
+        <span class="n">PythonLaunchDescriptionSource</span><span class="p">(</span><span class="n">slave_launch</span><span class="p">),</span>
+        <span class="n">launch_arguments</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;node_id&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;node_name&quot;</span><span class="p">:</span> <span class="s2">&quot;fake_right_drive&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;slave_config&quot;</span><span class="p">:</span> <span class="n">slave_config</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+        <span class="n">condition</span><span class="o">=</span><span class="n">UnlessCondition</span><span class="p">(</span><span class="n">use_real_hardware</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Handle launch sequence</span>
+    <span class="n">delay_robot_controller_spawner_after_joint_state_broadcaster_spawner</span> <span class="o">=</span> <span class="n">RegisterEventHandler</span><span class="p">(</span>
+        <span class="n">event_handler</span><span class="o">=</span><span class="n">OnProcessExit</span><span class="p">(</span>
+            <span class="n">target_action</span><span class="o">=</span><span class="n">joint_state_broadcaster_spawner</span><span class="p">,</span>
+            <span class="n">on_exit</span><span class="o">=</span><span class="p">[</span><span class="n">robot_controller_spawner</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">delay_rviz_after_joint_state_broadcaster_spawner</span> <span class="o">=</span> <span class="n">RegisterEventHandler</span><span class="p">(</span>
+        <span class="n">event_handler</span><span class="o">=</span><span class="n">OnProcessExit</span><span class="p">(</span>
+            <span class="n">target_action</span><span class="o">=</span><span class="n">joint_state_broadcaster_spawner</span><span class="p">,</span>
+            <span class="n">on_exit</span><span class="o">=</span><span class="p">[</span><span class="n">rviz_node</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">delay_master_launch</span> <span class="o">=</span> <span class="n">TimerAction</span><span class="p">(</span>
+        <span class="n">period</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">actions</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">control_node</span><span class="p">,</span>
+            <span class="n">joint_state_broadcaster_spawner</span><span class="p">,</span>
+            <span class="n">delay_robot_controller_spawner_after_joint_state_broadcaster_spawner</span><span class="p">,</span>
+            <span class="n">delay_rviz_after_joint_state_broadcaster_spawner</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">delay_slave_launch</span> <span class="o">=</span> <span class="n">TimerAction</span><span class="p">(</span>
+        <span class="n">period</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">actions</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">slave_node_1</span><span class="p">,</span><span class="n">slave_node_2</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">nodes_to_start</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">arg_can_interface_name</span><span class="p">,</span>
+        <span class="n">arg_use_real_hardware</span><span class="p">,</span>
+        <span class="n">robot_state_publisher_node</span><span class="p">,</span>
+        <span class="n">delay_master_launch</span><span class="p">,</span>
+        <span class="n">delay_slave_launch</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">LaunchDescription</span><span class="p">(</span><span class="n">nodes_to_start</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can now build your package. If you want to run the launch you will have
+to first setup the virtual can bus.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>modprobe<span class="w"> </span>vcan
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span>add<span class="w"> </span>dev<span class="w"> </span>vcan0<span class="w"> </span><span class="nb">type</span><span class="w"> </span>vcan
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>vcan0<span class="w"> </span>txqueuelen<span class="w"> </span><span class="m">1000</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>up<span class="w"> </span>vcan0
+</pre></div>
+</div>
+<p>Then you can run the launch file.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>launch<span class="w"> </span>forward_command.launch.py
+</pre></div>
+</div>
+<p>In another terminal with rolling sourced you can now send commands
+to the robot.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>topic<span class="w"> </span>pub<span class="w"> </span>/robby_forward_controller/commands<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>std_msgs/msg/Float64MultiArray<span class="w"> </span><span class="s2">&quot;data: [10.0, 10.0]</span>
+</pre></div>
+</div>
+<p>In rviz you can now see the wheels moving.</p>
+</section>
+<section id="launch-differential-drive-controller">
+<h2>Launch differential drive controller<a class="headerlink" href="#launch-differential-drive-controller" title="Link to this heading"></a></h2>
+<p>In order to run the robot with a differential drive controller, you can create a launch file
+called diff_drive.launch.py in the launch directory. Copy the contents of the forward_command.launch.py
+into this new file and then change the following lines:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">robot_controller_spawner</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+    <span class="n">package</span><span class="o">=</span><span class="s2">&quot;controller_manager&quot;</span><span class="p">,</span>
+    <span class="n">executable</span><span class="o">=</span><span class="s2">&quot;spawner&quot;</span><span class="p">,</span>
+<span class="hll">    <span class="n">arguments</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;robby_forward_controller&quot;</span><span class="p">,</span> <span class="s2">&quot;--controller-manager&quot;</span><span class="p">,</span> <span class="s2">&quot;/controller_manager&quot;</span><span class="p">],</span>
+</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Cange <code class="docutils literal notranslate"><span class="pre">robby_forward_controller</span></code> to <code class="docutils literal notranslate"><span class="pre">robby_base_controller</span></code>. Now you can
+build your workspace and then your are all setup to control the robot with
+a differential drive controller.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>launch<span class="w"> </span>my_robot_description<span class="w"> </span>diff_drive.launch.py
+</pre></div>
+</div>
+<p>In another terminal with rolling sourced you can use the <code class="docutils literal notranslate"><span class="pre">teleop_twist_keyboard</span></code> node to
+control the robot. To do this open another terminal and source rolling.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>/opt/ros/rolling/setup.bash
+ros2<span class="w"> </span>run<span class="w"> </span>teleop_twist_keyboard<span class="w"> </span>teleop_twist_keyboard<span class="w"> </span>--ros-args<span class="w"> </span>-r<span class="w"> </span>/cmd_vel:<span class="o">=</span>/robby_base_controller/cmd_vel_unstamped
+</pre></div>
+</div>
+<p>This is it, you can now run the robot with a differential drive controller.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="creating-control-configuration.html" class="btn btn-neutral float-left" title="ROS 2 control configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Christoph Hellmann Santos.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROS 2 control configuration &mdash; Building Robby  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ROS 2 launch files" href="creating-launch-files.html" />
+    <link rel="prev" title="ROS 2 CANopen bus configuration" href="creating-bus-configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Building Robby
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="prerequisites.html">Preparing the system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-package.html">ROS 2 configuration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-xacro.html">ROS 2 robot description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-bus-configuration.html">ROS 2 CANopen bus configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ROS 2 control configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-interface-ros2-control">System interface (ros2_control)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controllers">Controllers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="creating-launch-files.html">ROS 2 launch files</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Building Robby</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ROS 2 control configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/creating-control-configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ros-2-control-configuration">
+<h1>ROS 2 control configuration<a class="headerlink" href="#ros-2-control-configuration" title="Link to this heading"></a></h1>
+<p>The next configuration step is to create the configuration for ros2_control
+and ros2_controllers. So that we can control the robot with ROS 2 tools.</p>
+<section id="system-interface-ros2-control">
+<h2>System interface (ros2_control)<a class="headerlink" href="#system-interface-ros2-control" title="Link to this heading"></a></h2>
+<p>First we will create the configuration for the ros2_control interface.
+This needs to be done with another xacro file. Create a new file called
+<code class="docutils literal notranslate"><span class="pre">robby.ros2_control.xacro</span></code> in the <code class="docutils literal notranslate"><span class="pre">urdf</span></code> folder.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>touch<span class="w"> </span>urdf/robby.ros2_control.xacro
+</pre></div>
+</div>
+<p>Paste the following content into the file:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
+<span class="nt">&lt;robot</span><span class="w"> </span><span class="na">xmlns:xacro=</span><span class="s">&quot;http://www.ros.org/wiki/xacro&quot;</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;xacro:macro</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;robby_control&quot;</span><span class="w"> </span><span class="na">params=</span><span class="s">&quot;</span>
+<span class="s">    name</span>
+<span class="s">    prefix</span>
+<span class="s">    use_mock_hardware</span>
+<span class="s">    bus_config</span>
+<span class="s">    master_config</span>
+<span class="s">    can_interface_name</span>
+<span class="s">    master_bin</span>
+<span class="s">    &quot;</span><span class="nt">&gt;</span>
+
+<span class="w">    </span><span class="nt">&lt;ros2_control</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;${name}&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;system&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;xacro:unless</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;${use_mock_hardware}&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;hardware&gt;</span>
+<span class="w">        </span><span class="nt">&lt;plugin&gt;</span>canopen_ros2_control/RobotSystem<span class="nt">&lt;/plugin&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;bus_config&quot;</span><span class="nt">&gt;</span>${bus_config}<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;master_config&quot;</span><span class="nt">&gt;</span>${master_config}<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;can_interface_name&quot;</span><span class="nt">&gt;</span>${can_interface_name}<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;master_bin&quot;</span><span class="nt">&gt;</span>${master_bin}<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/hardware&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/xacro:unless&gt;</span><span class="w"> </span>--&gt;
+<span class="w">    </span><span class="nt">&lt;xacro:if</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;${use_mock_hardware}&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;hardware&gt;</span>
+<span class="w">        </span><span class="nt">&lt;plugin&gt;</span>mock_components/GenericSystem<span class="nt">&lt;/plugin&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;calculate_dynamics&quot;</span><span class="nt">&gt;</span>true<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/hardware&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/xacro:if&gt;</span>
+<span class="w">    </span><span class="nt">&lt;joint</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;${prefix}left_wheel_joint&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;command_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;device_name&quot;</span><span class="nt">&gt;</span>left_drive<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;position&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/joint&gt;</span>
+<span class="w">    </span><span class="nt">&lt;joint</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;${prefix}right_wheel_joint&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;command_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;device_name&quot;</span><span class="nt">&gt;</span>right_drive<span class="nt">&lt;/param&gt;</span>
+<span class="w">        </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;position&quot;</span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/joint&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ros2_control&gt;</span>
+
+<span class="nt">&lt;/xacro:macro&gt;</span>
+
+<span class="nt">&lt;/robot&gt;</span>
+</pre></div>
+</div>
+<p>Let’s check the contents:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ros2_control</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;${name}&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;system&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/ros2_control&gt;</span>
+</pre></div>
+</div>
+<p>This creates a ros2_control system interface with the name <code class="docutils literal notranslate"><span class="pre">${name}</span></code>.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;xacro:unless</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;${use_mock_hardware}&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;hardware&gt;</span>
+<span class="w">    </span><span class="nt">&lt;plugin&gt;</span>canopen_ros2_control/RobotSystem<span class="nt">&lt;/plugin&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;bus_config&quot;</span><span class="nt">&gt;</span>${bus_config}<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;master_config&quot;</span><span class="nt">&gt;</span>${master_config}<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;can_interface_name&quot;</span><span class="nt">&gt;</span>${can_interface_name}<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;master_bin&quot;</span><span class="nt">&gt;</span>${master_bin}<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/hardware&gt;</span>
+<span class="nt">&lt;/xacro:unless&gt;</span><span class="w"> </span>--&gt;
+<span class="nt">&lt;xacro:if</span><span class="w"> </span><span class="na">value=</span><span class="s">&quot;${use_mock_hardware}&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;hardware&gt;</span>
+<span class="w">    </span><span class="nt">&lt;plugin&gt;</span>mock_components/GenericSystem<span class="nt">&lt;/plugin&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;calculate_dynamics&quot;</span><span class="nt">&gt;</span>true<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/hardware&gt;</span>
+<span class="nt">&lt;/xacro:if&gt;</span>
+</pre></div>
+</div>
+<p>This creates the system interface using the plugin <code class="docutils literal notranslate"><span class="pre">canopen_ros2_control/RobotSystem</span></code>
+if <code class="docutils literal notranslate"><span class="pre">use_mock_hardware</span></code> is false. Otherwise it uses the plugin <code class="docutils literal notranslate"><span class="pre">mock_components/GenericSystem</span></code>.
+is used.</p>
+<p>The plugin <code class="docutils literal notranslate"><span class="pre">canopen_ros2_control/RobotSystem</span></code> is a plugin that is provided by the
+<code class="docutils literal notranslate"><span class="pre">canopen_ros2_control</span></code> package. It needs the following parameters:</p>
+<ul class="simple">
+<li><p><strong>bus_config</strong>: Path to bus.yml</p></li>
+<li><p><strong>master_config</strong>: Path to master.dcf (generated)</p></li>
+<li><p><strong>can_interface_name</strong>: Name of the CAN interface</p></li>
+<li><p><strong>master_bin</strong>: Path to the master binary</p></li>
+</ul>
+<p>The plugin <code class="docutils literal notranslate"><span class="pre">mock_components/GenericSystem</span></code> is a plugin that is provided by the
+<code class="docutils literal notranslate"><span class="pre">mock_components</span></code> package. It enables us to create a mock system on ros2_control
+level.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;joint</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;${prefix}left_wheel_joint&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;command_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;device_name&quot;</span><span class="nt">&gt;</span>left_drive<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;position&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/joint&gt;</span>
+<span class="nt">&lt;joint</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;${prefix}right_wheel_joint&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;command_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;param</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;device_name&quot;</span><span class="nt">&gt;</span>right_drive<span class="nt">&lt;/param&gt;</span>
+<span class="w">    </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;position&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;state_interface</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;velocity&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/joint&gt;</span>
+</pre></div>
+</div>
+<p>Here we define the interfaces the joints have and which CANopen device
+is used for the joint. The <code class="docutils literal notranslate"><span class="pre">device_name</span></code> parameter is used to find the
+device in the bus configuration.</p>
+<p>Now we need to include this file in the <code class="docutils literal notranslate"><span class="pre">robby.system.xacro</span></code> file.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
+<span class="nt">&lt;robot</span><span class="w"> </span><span class="na">xmlns:xacro=</span><span class="s">&quot;http://wiki.ros.org/xacro&quot;</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;test_robot&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;xacro:arg</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;use_mock_hardware&quot;</span><span class="w"> </span><span class="na">default=</span><span class="s">&quot;false&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;xacro:arg</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;can_interface_name&quot;</span><span class="w"> </span><span class="na">default=</span><span class="s">&quot;vcan0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;xacro:include</span><span class="w"> </span><span class="na">filename=</span><span class="s">&quot;$(find robby_description)/urdf/robby.robot.xacro&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;xacro:include</span><span class="w"> </span><span class="na">filename=</span><span class="s">&quot;$(find robby_description)/urdf/robby.ros2_control.xacro&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;link</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;world&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+
+<span class="w">    </span><span class="nt">&lt;xacro:robby</span>
+<span class="w">        </span><span class="na">name=</span><span class="s">&quot;robby&quot;</span>
+<span class="w">        </span><span class="na">prefix=</span><span class="s">&quot;&quot;</span>
+<span class="w">        </span><span class="na">parent=</span><span class="s">&quot;world&quot;</span>
+<span class="w">        </span><span class="nt">&gt;</span>
+<span class="w">            </span><span class="nt">&lt;origin</span><span class="w"> </span><span class="na">xyz=</span><span class="s">&quot;0 0 0.014&quot;</span><span class="w"> </span><span class="na">rpy=</span><span class="s">&quot;0 0 -1.57&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/xacro:robby&gt;</span>
+
+<span class="w">    </span><span class="nt">&lt;xacro:robby_control</span>
+<span class="w">        </span><span class="na">name=</span><span class="s">&quot;robby&quot;</span>
+<span class="w">        </span><span class="na">prefix=</span><span class="s">&quot;&quot;</span>
+<span class="w">        </span><span class="na">use_mock_hardware=</span><span class="s">&quot;$(arg use_mock_hardware)&quot;</span>
+<span class="w">        </span><span class="na">bus_config=</span><span class="s">&quot;$(find robby_description)/config/robby/bus.yml&quot;</span>
+<span class="w">        </span><span class="na">master_config=</span><span class="s">&quot;$(find robby_description)/config/robby/master.dcf&quot;</span>
+<span class="w">        </span><span class="na">can_interface_name=</span><span class="s">&quot;$(arg can_interface_name)&quot;</span>
+<span class="w">        </span><span class="na">master_bin=</span><span class="s">&quot;&quot;</span>
+<span class="w">        </span><span class="nt">/&gt;</span>
+
+<span class="nt">&lt;/robot&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="controllers">
+<h2>Controllers<a class="headerlink" href="#controllers" title="Link to this heading"></a></h2>
+<p>Now we need to create the configuration for the controllers. Create a new
+file called <code class="docutils literal notranslate"><span class="pre">ros2_controllers.yaml</span></code> in the <code class="docutils literal notranslate"><span class="pre">config/robby</span></code> folder.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>touch<span class="w"> </span>config/robby/ros2_controllers.yaml
+</pre></div>
+</div>
+<p>For our robot we need a joint_state_broadcaster which publishes the state
+of the wheels to the <code class="docutils literal notranslate"><span class="pre">joint_states</span></code> topic. We will also use a <code class="docutils literal notranslate"><span class="pre">forward_command_controller</span></code>
+and a <code class="docutils literal notranslate"><span class="pre">diff_drive_controller</span></code> to control the robot. Therefore, we need
+to tell the <code class="docutils literal notranslate"><span class="pre">controller_manager</span></code> about these controllers. Add the following lines
+to the <code class="docutils literal notranslate"><span class="pre">ros2_controllers.yaml</span></code> file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">controller_manager</span><span class="p">:</span>
+<span class="nt">ros__parameters</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">update_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50</span><span class="w">  </span><span class="c1"># Hz</span>
+
+<span class="w">    </span><span class="nt">joint_state_broadcaster</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">joint_state_broadcaster/JointStateBroadcaster</span>
+
+<span class="w">    </span><span class="nt">robby_base_controller</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">diff_drive_controller/DiffDriveController</span>
+
+<span class="w">    </span><span class="nt">robby_forward_controller</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">forward_command_controller/ForwardCommandController</span>
+</pre></div>
+</div>
+<p>We also need to configure the controllers. For the forward_command_controller
+this is straight forward. Add the following lines to the <code class="docutils literal notranslate"><span class="pre">ros2_controllers.yaml</span></code> file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robby_forward_controller</span><span class="p">:</span>
+<span class="nt">ros__parameters</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">left_wheel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">left_wheel_joint</span>
+<span class="w">    </span><span class="nt">right_wheel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">right_wheel_joint</span>
+<span class="nt">interface_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">velocity</span>
+</pre></div>
+</div>
+<p>The diff_drive_controller is more complex. We need to configure many things.
+Add the following lines to the <code class="docutils literal notranslate"><span class="pre">ros2_controllers.yaml</span></code> file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robby_base_controller</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">ros__parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">left_wheel_names</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;left_wheel_joint&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">right_wheel_names</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;right_wheel_joint&quot;</span><span class="p p-Indicator">]</span>
+
+<span class="w">        </span><span class="nt">wheel_separation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.24</span>
+<span class="w">        </span><span class="c1">#wheels_per_side: 1  # actually 2, but both are controlled by 1 signal</span>
+<span class="w">        </span><span class="nt">wheel_radius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.035</span>
+
+<span class="w">        </span><span class="nt">wheel_separation_multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">left_wheel_radius_multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">right_wheel_radius_multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+
+<span class="w">        </span><span class="nt">publish_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span>
+<span class="w">        </span><span class="nt">odom_frame_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">world</span>
+<span class="w">        </span><span class="nt">base_frame_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">base_link</span>
+<span class="w">        </span><span class="nt">pose_covariance_diagonal </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.01</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">twist_covariance_diagonal</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.01</span><span class="p p-Indicator">]</span>
+
+<span class="w">        </span><span class="nt">open_loop</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">enable_odom_tf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="w">        </span><span class="nt">cmd_vel_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">        </span><span class="c1">#publish_limited_velocity: true</span>
+<span class="w">        </span><span class="nt">use_stamped_vel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="c1">#velocity_rolling_window_size: 10</span>
+
+<span class="w">        </span><span class="c1"># Velocity and acceleration limits</span>
+<span class="w">        </span><span class="c1"># Whenever a min_* is unspecified, default to -max_*</span>
+<span class="w">        </span><span class="nt">linear.x.has_velocity_limits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">linear.x.has_acceleration_limits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">linear.x.has_jerk_limits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="nt">linear.x.max_velocity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">linear.x.min_velocity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.0</span>
+<span class="w">        </span><span class="nt">linear.x.max_acceleration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">linear.x.max_jerk</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">        </span><span class="nt">linear.x.min_jerk</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+
+<span class="w">        </span><span class="nt">angular.z.has_velocity_limits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">angular.z.has_acceleration_limits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">angular.z.has_jerk_limits</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="nt">angular.z.max_velocity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">angular.z.min_velocity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.0</span>
+<span class="w">        </span><span class="nt">angular.z.max_acceleration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">angular.z.min_acceleration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.0</span>
+<span class="w">        </span><span class="nt">angular.z.max_jerk</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">        </span><span class="nt">angular.z.min_jerk</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+</pre></div>
+</div>
+<p>This is it, we are done with the configurations. Now we only need to write
+launch files to use the robot.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="creating-bus-configuration.html" class="btn btn-neutral float-left" title="ROS 2 CANopen bus configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="creating-launch-files.html" class="btn btn-neutral float-right" title="ROS 2 launch files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Christoph Hellmann Santos.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

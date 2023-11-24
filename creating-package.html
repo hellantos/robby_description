@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROS 2 configuration package &mdash; Building Robby  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ROS 2 robot description" href="creating-xacro.html" />
+    <link rel="prev" title="Preparing the system" href="prerequisites.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Building Robby
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="prerequisites.html">Preparing the system</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ROS 2 configuration package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-new-package">Creating a new package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="creating-xacro.html">ROS 2 robot description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-bus-configuration.html">ROS 2 CANopen bus configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-control-configuration.html">ROS 2 control configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-launch-files.html">ROS 2 launch files</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Building Robby</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ROS 2 configuration package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/creating-package.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ros-2-configuration-package">
+<h1>ROS 2 configuration package<a class="headerlink" href="#ros-2-configuration-package" title="Link to this heading"></a></h1>
+<p>In order to use the ROS 2 CANopen stack, a configuration package is required.
+This package will contain the necessary configuration files to describe the
+robot that you are building. This includes files for the
+following:</p>
+<ul class="simple">
+<li><p>CANopen devices</p></li>
+<li><p>CANopen bus</p></li>
+<li><p>Hardware description</p></li>
+<li><p>Hardware interface description</p></li>
+<li><p>Controller configuration</p></li>
+<li><p>Launch files</p></li>
+</ul>
+<p>This chapter will teach you how to create the configuration package for your
+robot. The following chapters will then explain how to create the individual
+configuration files.</p>
+<section id="creating-a-new-package">
+<h2>Creating a new package<a class="headerlink" href="#creating-a-new-package" title="Link to this heading"></a></h2>
+<p>The first step is to create a new package for your robot. This can be done
+using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>pkg<span class="w"> </span>create<span class="w"> </span>--build-type<span class="w"> </span>ament_cmake<span class="w"> </span>my_robot_description<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dependencies<span class="w"> </span>lely_core_libraries<span class="w"> </span>--license<span class="w"> </span>Apache-2.0
+</pre></div>
+</div>
+<p>Now you have a package with the following content:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>my_robot_description
+├──<span class="w"> </span>CMakeLists.txt
+├──<span class="w"> </span>LICENSE
+├──<span class="w"> </span>include
+│<span class="w">   </span>└──<span class="w"> </span>my_robot_description
+├──<span class="w"> </span>package.xml
+└──<span class="w"> </span>src
+</pre></div>
+</div>
+<p>As we are creating a description package, we will not need the <code class="docutils literal notranslate"><span class="pre">src</span></code> and
+<code class="docutils literal notranslate"><span class="pre">include</span></code> directories. You can remove them using the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm<span class="w"> </span>-r<span class="w"> </span>src
+rm<span class="w"> </span>-r<span class="w"> </span>include
+</pre></div>
+</div>
+<p>Now we will need to add the following dependencies to the <code class="docutils literal notranslate"><span class="pre">package.xml</span></code> file
+(I did not to an extensive dependency analysis, we will discover the missing ones
+on the go).</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;depend&gt;</span>diff_drive_controller<span class="nt">&lt;/depend&gt;</span>
+<span class="nt">&lt;depend&gt;</span>forward_command_controller<span class="nt">&lt;/depend&gt;</span>
+<span class="nt">&lt;depend&gt;</span>controller_manager<span class="nt">&lt;/depend&gt;</span>
+<span class="nt">&lt;depend&gt;</span>robot_state_publisher<span class="nt">&lt;/depend&gt;</span>
+<span class="nt">&lt;depend&gt;</span>joint_state_broadcaster<span class="nt">&lt;/depend&gt;</span>
+<span class="nt">&lt;depend&gt;</span>rviz2<span class="nt">&lt;/depend&gt;</span>
+</pre></div>
+</div>
+<p>Now we are all set an can start creating the configuration files.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="prerequisites.html" class="btn btn-neutral float-left" title="Preparing the system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="creating-xacro.html" class="btn btn-neutral float-right" title="ROS 2 robot description" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Christoph Hellmann Santos.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

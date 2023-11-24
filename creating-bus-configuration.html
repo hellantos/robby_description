@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROS 2 CANopen bus configuration &mdash; Building Robby  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ROS 2 control configuration" href="creating-control-configuration.html" />
+    <link rel="prev" title="ROS 2 robot description" href="creating-xacro.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Building Robby
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="prerequisites.html">Preparing the system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-package.html">ROS 2 configuration package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-xacro.html">ROS 2 robot description</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ROS 2 CANopen bus configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-control-configuration.html">ROS 2 control configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-launch-files.html">ROS 2 launch files</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Building Robby</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ROS 2 CANopen bus configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/creating-bus-configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ros-2-canopen-bus-configuration">
+<h1>ROS 2 CANopen bus configuration<a class="headerlink" href="#ros-2-canopen-bus-configuration" title="Link to this heading"></a></h1>
+<p>The CANopen Bus Configuration consists of multiple files that we have to
+provide or create:</p>
+<ul class="simple">
+<li><p>Device descriptions (<em>.eds/</em>.dcf)</p></li>
+<li><p>Bus description</p></li>
+</ul>
+<p>The device descriptions are usually provided by the device manufacturer,
+if you buy a CANopen drive make sure it provides a CiA402 interface.
+Otherwise the CANopen stack will not be able to use device as a drive.</p>
+<p>The bus description is a file that describes the bus of your robot. It
+contains the devices that are connected to the bus and details about
+how to control them as well as further configuraiton options.</p>
+<p>Our first step in creating a bus configuration is to create a config folder
+in our package.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/src/my_robot_description
+mkdir<span class="w"> </span>-p<span class="w"> </span>config/robby
+</pre></div>
+</div>
+<p>Then we are going to copy the device description of our drive into the
+the created folder.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>~/ros2_ws/src/robby_description/config/robby/TMCM-1270.eds<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>~/ros2_ws/src/my_robot_description/config/robby/
+</pre></div>
+</div>
+<p>The next step is to create a bus description file. This is a yaml
+file, that needs to be called <code class="docutils literal notranslate"><span class="pre">bus.yml</span></code> and needs to be placed in
+the <code class="docutils literal notranslate"><span class="pre">config/robby</span></code> folder.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>touch<span class="w"> </span>~/ros2_ws/src/my_robot_description/config/robby/bus.yml
+</pre></div>
+</div>
+<p>The bus that we have on our robot is simple. It consists of a master (id=1)
+an the two drives (left (id=3) and right (id=2)).</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>Now we need to define the drivers that should be used for the master and
+drives. The master uses the standard master driver provided by the ros2_canopen
+stack and the drives use the CiA402 driver.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::MasterDriver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_master_driver&quot;</span>
+
+<span class="nt">defaults</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::Cia402Driver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_402_driver&quot;</span>
+
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>Now we can add the dcf files to the bus description. As the bus description
+is used a compile time to create machine readable configuration files, we need
+to as well provide the path to the dcf files.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">options</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@BUS_CONFIG_PATH@&quot;</span>
+
+<span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::MasterDriver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_master_driver&quot;</span>
+
+<span class="nt">defaults</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;TMCM-1270.eds&quot;</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::Cia402Driver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_402_driver&quot;</span>
+
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>Next we can configure the CiA402 driver a bit more. Basically we want
+the driver run with a frequency of 50 hz and we want to use the profile
+position mode as position mode and profile velocity mode as velocity mode.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">options</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@BUS_CONFIG_PATH@&quot;</span>
+
+<span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::MasterDriver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_master_driver&quot;</span>
+
+<span class="nt">defaults</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;TMCM-1270.eds&quot;</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::Cia402Driver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_402_driver&quot;</span>
+<span class="w">  </span><span class="nt">polling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">position_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">velocity_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>We need to as well do some device specific configurations, that will base
+executed during startup of the device (PREOP state).</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">options</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@BUS_CONFIG_PATH@&quot;</span>
+
+<span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::MasterDriver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_master_driver&quot;</span>
+
+<span class="nt">defaults</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;TMCM-1270.eds&quot;</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::Cia402Driver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_402_driver&quot;</span>
+<span class="w">  </span><span class="nt">polling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">position_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">velocity_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">heartbeat_producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1"># Heartbeat every 1000 ms</span>
+<span class="w">  </span><span class="nt">sdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># SDO executed during config</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x2000</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">}</span><span class="w">       </span><span class="c1"># Microstep resolution (8 per step)</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6081</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">1600</span><span class="p p-Indicator">}</span><span class="w">    </span><span class="c1"># Set velocity</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6083</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set acceleration</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6083</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set deceleration</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6085</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set quickstop deceleration</span>
+
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>For the CiA402 driver to work efficiently with profile velocity and position mode we need to configure the PDOs.
+At least the follfowing objects need to be mapped on an active PDO:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Index</p></td>
+<td><p>Subindex</p></td>
+<td><p>Name</p></td>
+<td><p>Size (Bits)</p></td>
+</tr>
+<tr class="row-even"><td><p>0x6040</p></td>
+<td><p>0</p></td>
+<td><p>Controlword</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x6060</p></td>
+<td><p>0</p></td>
+<td><p>Modes of operation</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>0x607A</p></td>
+<td><p>0</p></td>
+<td><p>Target position</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x60FF</p></td>
+<td><p>0</p></td>
+<td><p>Target velocity</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-even"><td><p>0x6041</p></td>
+<td><p>0</p></td>
+<td><p>Statusword</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x6061</p></td>
+<td><p>0</p></td>
+<td><p>Modes of operation display</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>0x6064</p></td>
+<td><p>0</p></td>
+<td><p>Position actual value</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x606C</p></td>
+<td><p>0</p></td>
+<td><p>Velocity actual value</p></td>
+<td><p>32</p></td>
+</tr>
+</tbody>
+</table>
+<p>The PDOs are configured to be sent on every SYNC message. The master issues sync every 20 ms.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">options</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@BUS_CONFIG_PATH@&quot;</span>
+
+<span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::MasterDriver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_master_driver&quot;</span>
+<span class="hll"><span class="w">  </span><span class="nt">sync_period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20000</span>
+</span>
+<span class="nt">defaults</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;TMCM-1270.eds&quot;</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::Cia402Driver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_402_driver&quot;</span>
+<span class="w">  </span><span class="nt">polling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">position_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">velocity_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">heartbeat_producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1"># Heartbeat every 1000 ms</span>
+<span class="w">  </span><span class="nt">sdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># SDO executed during config</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x2000</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">}</span><span class="w">       </span><span class="c1"># Microstep resolution (8 per step)</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6081</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">1600</span><span class="p p-Indicator">}</span><span class="w">    </span><span class="c1"># Set velocity</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6083</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set acceleration</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6083</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set deceleration</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6085</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set quickstop deceleration</span>
+
+<span class="hll"><span class="w">  </span><span class="nt">tpdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># TPDO needed statusword, actual velocity, actual position, mode of operation</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">1</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">transmission</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0x01</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+</span><span class="hll"><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6041</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># status word</span>
+</span><span class="hll"><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6061</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># mode of operation display</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">2</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">transmission</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0x01</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+</span><span class="hll"><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6064</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># position actual value</span>
+</span><span class="hll"><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x606c</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># velocity actual position</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">3</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">4</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span class="hll"><span class="w">  </span><span class="nt">rpdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># RPDO needed controlword, target position, target velocity, mode of operation</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">1</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6040</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># controlword</span>
+</span><span class="hll"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6060</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># mode of operation</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">2</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+</span><span class="hll"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x607A</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># target position</span>
+</span><span class="hll"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x60FF</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># target velocity</span>
+</span><span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>Our device is a stepper motor with 200 steps per revolution and 8 Microsteps
+per step. This means that we have 1600 steps per revolution. The drives
+use microsteps as unit for position and velocity and acceleration. This
+means that we need to convert our values (radians) to microsteps.</p>
+<p>To the device: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">radians</span> <span class="pre">*</span> <span class="pre">1600</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">*</span> <span class="pre">pi)</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">*</span> <span class="pre">254,64</span> <span class="pre">microsteps</span></code></p>
+<p>From the device: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">microsteps</span> <span class="pre">*</span> <span class="pre">(2</span> <span class="pre">*</span> <span class="pre">pi)</span> <span class="pre">/</span> <span class="pre">1600</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">*</span> <span class="pre">0.00392</span> <span class="pre">radians</span></code></p>
+<p>In addition, the left wheel needs to turn in opposite direction to the right wheel.
+We can adjust this by passing scaling factors to the driver.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">options</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;@BUS_CONFIG_PATH@&quot;</span>
+
+<span class="nt">master</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::MasterDriver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_master_driver&quot;</span>
+<span class="w">  </span><span class="nt">sync_period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20000</span>
+
+<span class="nt">defaults</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">dcf</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;TMCM-1270.eds&quot;</span>
+<span class="w">  </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ros2_canopen::Cia402Driver&quot;</span>
+<span class="w">  </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;canopen_402_driver&quot;</span>
+<span class="w">  </span><span class="nt">polling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">position_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">velocity_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="nt">heartbeat_producer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1"># Heartbeat every 1000 ms</span>
+<span class="w">  </span><span class="nt">sdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># SDO executed during config</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x2000</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">}</span><span class="w">       </span><span class="c1"># Microstep resolution (8 per step)</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6081</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">1600</span><span class="p p-Indicator">}</span><span class="w">    </span><span class="c1"># Set velocity</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6083</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set acceleration</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6083</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set deceleration</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6085</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">16000</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># Set quickstop deceleration</span>
+
+<span class="w">  </span><span class="nt">tpdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># TPDO needed statusword, actual velocity, actual position, mode of operation</span>
+<span class="w">    </span><span class="nt">1</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">transmission</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0x01</span>
+<span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6041</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># status word</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6061</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># mode of operation display</span>
+<span class="w">    </span><span class="nt">2</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">transmission</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0x01</span>
+<span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6064</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># position actual value</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x606c</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># velocity actual position</span>
+<span class="w">    </span><span class="nt">3</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">4</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">rpdo</span><span class="p">:</span><span class="w"> </span><span class="c1"># RPDO needed controlword, target position, target velocity, mode of operation</span>
+<span class="w">    </span><span class="nt">1</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6040</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># controlword</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x6060</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># mode of operation</span>
+<span class="w">    </span><span class="nt">2</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">mapping</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x607A</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># target position</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="nv">0x60FF</span><span class="p p-Indicator">,</span><span class="nt"> sub_index</span><span class="p">:</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># target velocity</span>
+<span class="nt">nodes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">left_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="hll"><span class="w">      </span><span class="nt">scale_pos_from_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-0.003926991</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">scale_pos_to_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-254.647897079</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">scale_vel_from_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-0.003926991</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">scale_vel_to_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-254.647897079</span>
+</span><span class="w">  </span><span class="nt">right_drive</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="hll"><span class="w">      </span><span class="nt">scale_pos_from_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.003926991</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">scale_pos_to_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">254.647897079</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">scale_vel_from_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.003926991</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">scale_vel_to_dev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">254.647897079</span>
+</span></pre></div>
+</div>
+<p>Now we have completed the bus configuration.
+We need to now tell the build system to use the bus configuration.
+In the <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> of our package we need to add the following line after the <code class="docutils literal notranslate"><span class="pre">find_package</span></code> call.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">cogen_dcf</span><span class="p">(</span><span class="s">robby</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can build the package and the bus configuration will be compiled.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="creating-xacro.html" class="btn btn-neutral float-left" title="ROS 2 robot description" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="creating-control-configuration.html" class="btn btn-neutral float-right" title="ROS 2 control configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Christoph Hellmann Santos.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
