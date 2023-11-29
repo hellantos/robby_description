@@ -18,6 +18,9 @@
   <depend>robot_state_publisher</depend>
   <depend>rviz2</depend>
   <depend>teleop_twist_keyboard</depend>
+  <depend>lely_core_libraries</depend>
+  <depend>canopen_402_driver</depend>
+  <depend>canopen_ros2_control</depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>
