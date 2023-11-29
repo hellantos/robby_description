@@ -16,6 +16,7 @@ Building Robby
    creating-bus-configuration
    creating-control-configuration
    creating-launch-files
+   creating-robot-arm
 
 
 

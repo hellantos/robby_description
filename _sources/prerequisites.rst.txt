@@ -19,7 +19,7 @@ Next we need to clone the ros2_canopen stack into our workspace.
 
   git clone https://github.com/ros-industrial/ros2_canopen.git
   git clone https://github.com/ipa-cmh/robby_description.git
-
+  git clone https://github.com/ros-industrial/ros2_canopen.git
 
 Now we can build the ROS 2 CANopen stack.
 
