@@ -139,7 +139,7 @@ The ros2_rontol configuration requires the prbt.ros2_control.xacro.
 
         </xacro:macro>
 
-</robot>
+    </robot>
 
 In addition we need to define the ros2_controllers.
 
